@@ -1,0 +1,22 @@
+#!/usr/bin/php
+<?php
+
+exec('git diff --cached --name-status --diff-filter=ACM', $output);
+
+foreach ($output as $file) {
+    $fileName = trim(substr($file, 1) );
+    if (pathinfo($fileName,PATHINFO_EXTENSION) == "php") {
+        $lint_output = array();
+        exec("php -l " . escapeshellarg($fileName), $lint_output, $return);
+
+        if ($return == 0) {
+          exec("php php-cs-fixer.phar fix {$fileName} --config-file=.php_cs; git add {$fileName}");
+					echo $file.PHP_EOL;
+        } else {
+           echo implode("\n", $lint_output), "\n";
+           exit(1);
+        }
+    }
+}
+echo 'All source-code is clean'.PHP_EOL;
+exit(0);

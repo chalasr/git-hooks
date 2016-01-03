@@ -1,0 +1,11 @@
+#!/bin/sh
+
+base=$(cat $1)
+message=`echo ${base:0:1} | tr  '[a-z]' '[A-Z]'`${base:1}
+ticket=$(git symbolic-ref --short HEAD | awk -F- '/^issue-/ {print $2}')
+
+if [ -n "$ticket" ]; then
+	echo "#$ticket $message" > $1
+else
+  echo "$message" > $1
+fi
