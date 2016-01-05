@@ -1,11 +1,25 @@
-#!/bin/sh
+#!/bin/bash
 
+# original message
 base=$(cat $1)
-message=`echo ${base:0:1} | tr  '[a-z]' '[A-Z]'`${base:1}
-ticket=$(git symbolic-ref --short HEAD | awk -F- '/^issue-/ {print $2}')
-
+# ticket patterns
+patterns=(ticket- issue- bug-)
+# current branch name excluding namespace
+current_branch=$(git symbolic-ref --short HEAD | cut -d/ -f2-)
+# capitalize message's first char
+message=`echo ${base:0:1} | tr '[a-z]' '[A-Z]'`${base:1}
+# retrieve ticket number from patterns
+i=0;
+while [ $i -le 2 ]; do
+  pattern=${patterns[$i]}
+  if [ "${current_branch#$pattern}" != "$current_branch" ]; then
+    ticket=${current_branch#$pattern}
+  fi
+  ((i++))
+done
+# prepend number to commit message
 if [ -n "$ticket" ]; then
-	echo "#$ticket $message" > $1
+  echo "#$ticket $message" > $1
 else
   echo "$message" > $1
 fi
